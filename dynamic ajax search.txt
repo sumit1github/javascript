@@ -1,0 +1,86 @@
+------------------------------------------- cdn------------------------------------------
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="{% static 'admin_product/productsearch.js' %}"></script>
+------------------------------------------- html ----------------------------------
+<input type="text" id="admin_product_search_query" oninput="myFunction()" placeholder="id or name" class="form-control">
+                                        
+<div id="dynamic_search_result_div" style="height: 500px; display: none;position: absolute;background-color: #eeeeee;width: 300px;padding: 8px;z-index: 1000;top: 76px;left: 0px;overflow: auto;">
+
+  <table class="table" id="dynamic_search_result_table">
+      <thead>
+          <tr>
+              <th scope="col">Name</th>
+              <th scope="col">Action</th>
+
+          </tr>
+      </thead>
+      <tbody id="dynamic_search_tbody">
+
+      </tbody>
+
+  </table>
+
+</div>
+
+
+--------------------------------------------- javascript ---------------------------------
+function myFunction(){
+    //on function call it will open the div
+    document.getElementById('dynamic_search_result_div').style.display='block';
+    
+    //taget: the n element when we are appending the data
+    var target= document.getElementById('dynamic_search_tbody');
+
+    // for each function calling we are deleting the existing data present inside the element
+    document.getElementById('dynamic_search_tbody').innerHTML='';
+
+    //getting the query value on input
+    var x = document.getElementById("admin_product_search_query").value;
+
+    var url='/product/product_search/'+'?query='+x
+    axios.get(url)
+    .then(function (response) {
+        // handle success
+        for (let i=0; i < response.data.length; i++){
+            
+            var html='<tr>\
+                        <th scope="row">'+response.data[i][1] +'</th>\
+                        <td>\
+                            <a class="btn btn-primary btn-sm" href="">\
+                            <i class="fa fa-edit" style="float: right;"></i>\
+                            </a>\
+                            <a href="/product/admin_product_detail/'+response.data[i][0]+'/"\
+                                class="btn btn-success btn-sm"><i class="fa fa-eye" style="float: right;"></i>\
+                            </a>\
+                        </td>\
+                    </tr>';
+            target.innerHTML+=html;
+        }   
+      })
+      .catch(function (error) {
+        console.log(error);
+      })
+
+  
+}
+
+------------------------------------------------- views.py-----------------------------------
+from django.http import JsonResponse
+
+class ProductSearchView(View):
+    form = ProductForm
+    model = Product
+    serializer_class=ProductSearchSerializer
+    template = app + "product_list.html"
+
+    def get(self,request,*args,**kwargs):
+        query=request.GET.get('query')
+        product_list=[]
+        try:
+            query=int(query)
+            product_list=self.model.objects.filter(id=query).values_list('id','name')
+        except:
+            product_list=self.model.objects.filter(name__icontains=query).values_list('id','name')
+        product_list=list(product_list)
+        return JsonResponse(product_list, safe=False)
