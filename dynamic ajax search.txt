@@ -25,7 +25,8 @@
 
 
 --------------------------------------------- javascript ---------------------------------
-function myFunction(){
+function dynamicsearch(){
+
     //on function call it will open the div
     document.getElementById('dynamic_search_result_div').style.display='block';
     
@@ -36,9 +37,11 @@ function myFunction(){
     document.getElementById('dynamic_search_tbody').innerHTML='';
 
     //getting the query value on input
-    var x = document.getElementById("admin_product_search_query").value;
-
-    var url='/product/product_search/'+'?query='+x
+    var x = document.getElementById("dynamic_search_query").value;
+    if (x == ''){
+        document.getElementById('dynamic_search_result_div').style.display='none';
+    }
+    var url='/contact/search_contact/'+'?query='+x
     axios.get(url)
     .then(function (response) {
         // handle success
@@ -46,15 +49,18 @@ function myFunction(){
             
             var html='<tr>\
                         <th scope="row">'+response.data[i][1] +'</th>\
-                        <td>\
-                            <a class="btn btn-primary btn-sm" href="">\
-                            <i class="fa fa-edit" style="float: right;"></i>\
-                            </a>\
-                            <a href="/product/admin_product_detail/'+response.data[i][0]+'/"\
-                                class="btn btn-success btn-sm"><i class="fa fa-eye" style="float: right;"></i>\
-                            </a>\
+                        <td><a href="/contact/edit_contact/'+response.data[i][0]+'/" class="btn btn-success">Edit</a>\
+                            <span>\
+                                <a onclick="confirm_delete('+response.data[i][0]+')" style="display: inherit;" id="remove_button'+response.data[i][0]+'"\
+                                    class="btn btn-danger">Remove\
+                                </a>\
+                                <a style="display: none;" id="confirm_remove_button'+response.data[i][0]+'" href="/contact/delete_contact/'+response.data[i][0]+'"\
+                                    class="btn btn-info">Confirm Delete\
+                                </a>\
+                            </span>\
                         </td>\
                     </tr>';
+
             target.innerHTML+=html;
         }   
       })
